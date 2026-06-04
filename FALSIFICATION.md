@@ -66,7 +66,37 @@ Concretely, the idea is falsified if any of the following hold on real systems:
   make the check general is to make it exhaustive — then there is no middle path:
   it is just verification with extra steps.
 
-In this toy, none of these bite, because the world hands the gate a perfect
-environment family and the adversaries are weak. On real models, any one of them
-landing kills the approach. This repository is evidence that the *logic* is
-worth taking to that harder test — and nothing more.
+In this toy, none of these bite *for the four canonical scenarios*, because the
+world hands the gate a perfect environment family and those adversaries are loud.
+On real models, any one of them landing kills the approach. This repository is
+evidence that the *logic* is worth taking to that harder test — and nothing more.
+
+## Empirical note: the constants do the discriminating, and they are not derived
+
+`tests/test_threshold_sensitivity.py` sweeps the gate's two free constants
+(`attribution_threshold = 0.5`, `invariance_margin = 0.02`) and the environment
+sample size. Two findings are worth stating plainly, because the four canonical
+tests hide them:
+
+1. **The defaults look robust only because the canonical adversaries are loud.**
+   Across five seeds there is a wide band of `(threshold, margin)` that classifies
+   all four canonical scenarios correctly, and the defaults sit well inside it
+   with slack far larger than the accuracy quantum. Taken alone, this invites the
+   conclusion that the constants don't matter much. They do.
+
+2. **A stealth adversary turns the margin into the whole decision — and the
+   shipped default gets it wrong.** A shortcut-contaminated modification whose
+   gain stays *net-positive across the sampled environments* (worst sampled-env
+   gain ≈ +0.055) is **accepted at the default margin of 0.02**. It is rejected
+   only by (a) raising the margin above its worst sampled-env gain or (b)
+   sampling enough additional environments to reach the adverse tail. Correctness
+   on this adversary is therefore set jointly by `invariance_margin` and
+   `n_envs` — neither of which has a principled value here. This is killers #1 and
+   #2 above, reproduced as an executing test rather than asserted in prose.
+
+The honest reading: **"all tests pass" certifies the verdicts at one operating
+point; it does not certify robustness, and a stealth exploit exists inside the
+toy that the shipped defaults wave through.** Deriving `invariance_margin` from a
+stated per-environment noise model (so it is a function of the world rather than
+a number chosen by looking at the answer) is the obvious next step — and whether
+that derivation stays cheap on real models is, again, the open question.

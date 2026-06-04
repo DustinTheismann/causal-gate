@@ -73,12 +73,23 @@ python -m causal_gate.loop
 | `test_reward_hack.py` | gain from a shortcut; claim names the *real* mechanism | **accept** | **reject** | the core result — benchmark is fooled; the causal gate sees the gain survive ablation of the claimed mechanism |
 | `test_fabricated_claim.py` | gain from a shortcut; claim *lies* about the mechanism (names a feature the model never reads) | accept | **reject** | a fabricated claim is still caught: ablating an unused mechanism removes none of the gain |
 | `test_gate_not_overfit.py` | a **second, unseen** shortcut, claimed *honestly* | accept | **reject** | the gate is not a lookup table — an honest claim passes the ablation check, but the **general invariance property** still catches the new exploit; the check source names no specific feature |
+| `test_threshold_sensitivity.py` | sweep `threshold`/`margin`/`n_envs` and a **stealth** exploit | — | — | the verdicts are robust to the constants for the *loud* canonical adversaries, **but** a shortcut-contaminated stealth exploit is **falsely accepted at the default margin** — robustness is a property of the operating point, not a free lunch |
 
-The last test is the important one for the "is this overfit?" worry: it
-introduces a shortcut the gate has never been told about, has the adversary
+`test_gate_not_overfit.py` is the important one for the "is this overfit?" worry:
+it introduces a shortcut the gate has never been told about, has the adversary
 *honestly* claim it (so the ablation check alone would accept it), and shows the
 gate still rejects it via the general invariance property — then asserts by
 source inspection that `causal_check.py` references no specific feature name.
+
+`test_threshold_sensitivity.py` is the adversarial counterweight. The other tests
+each pin one operating point; "all tests pass" therefore certifies *the verdicts
+at the default constants*, not that they are robust to them. The sweep maps the
+safe region of `(threshold, margin)`, shows the defaults are interior for the
+loud canonical adversaries — and then exhibits a **stealth exploit the shipped
+default margin (0.02) wrongly accepts**, recovered only by raising the margin or
+sampling more environments. Don't let the green checks launder "robust" into
+"correct at one point." See [`FALSIFICATION.md`](./FALSIFICATION.md) for the
+write-up.
 
 ## Layout
 
