@@ -1,0 +1,23 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "causal-gate"
+version = "0.1.0"
+description = "A toy demonstrating mechanism-attribution rejection of reward hacks in a self-improvement loop."
+readme = "README.md"
+license = { file = "LICENSE" }
+requires-python = ">=3.9"
+# Standard library only. The "model" and "benchmark" are simulated on purpose.
+dependencies = []
+
+[project.optional-dependencies]
+test = ["pytest>=7.0"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
