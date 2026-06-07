@@ -1,113 +1,119 @@
-# causal-gate
+# Recursive R&D Foundry
 
-A toy demonstrating **mechanism-attribution rejection of reward hacks** in a
-self-improvement loop. Standard library + `pytest` only — no ML dependencies.
-The "model" and "benchmark" are simulated on purpose, so the *gate logic* is the
-entire object of study.
+A governed **recursive self-improvement scaffold**. AI systems generate successor
+candidates, evaluate them, learn from failures, and promote only candidates that
+clear a stack of gates: **novelty, causal, benchmark, containment, contracts, and
+HALF-LIFE assurance**. Standard library + `pytest` only.
 
-> **Honest limitation, up front.** This is a **CLASS-5 (informed-inference)
-> artifact**: it is *simulated, not empirical*. It shows that the gate logic is
-> coherent and not overfit to one planted hack. It does **not** show that
-> causal-claim defense is cheaper than formal verification on real models. That
-> is the open question — and the thing that could kill the whole approach. See
+> **Honest limitation, up front.** Every "model", "benchmark", "sandbox", and
+> "proof" here is **simulated**. The cited research directions (Darwin Gödel
+> Machine, AlphaEvolve, ADAS, SEAL, AI Scientist, MAP-Elites, POET, LeanDojo,
+> MLE/RE/SWE-bench) are the *motivation* for the architecture, **not** integrated
+> systems and **not** reproduced results. What this repo demonstrates is that the
+> **governance logic is coherent, composable, and not overfit** — successors only
+> advance when a causally-evidenced, contained, assurance-bounded improvement
+> survives every gate. It does **not** show that this governance is cheap or sound
+> on real models. That is the open question. See
 > [`FALSIFICATION.md`](./FALSIFICATION.md).
 
-## The concept
+## The core conclusion
 
-A self-improvement loop accepts candidate modifications to a model.
+The viable path is not "one AI mutates itself freely." It is a recursive AI **R&D
+factory**:
 
-- A **benchmark-only gate** accepts any modification whose score goes up. This is
-  *gameable*: a modification can score higher for the wrong reason — a shortcut
-  that exploits the benchmark rather than the thing the benchmark is meant to
-  measure.
-- A **causal gate** accepts a modification only if its stated **causal claim** —
-  *"this helps because of mechanism M"* — survives an adversarial check that
-  tries to show the gain comes from something other than M.
+```
+generate successors -> sandbox -> benchmark -> prove / test / ablate
+  -> extract useful traits -> train future proposers on failures
+  -> promote only governed improvements -> coevolve the benchmark -> repeat
+```
 
-Every modification must therefore carry a `CausalClaim` naming the feature /
-mechanism it says drives its improvement. The causal gate adversarially tests
-that claim instead of trusting it.
+The novel move is **recursive improvement without single-winner fixation**: losers
+are not discarded. Their traits feed a Best-Attribute Registry, their niches fill a
+MAP-Elites archive, and their failures become SEAL training signal. The generator,
+the agent design, the training data, the benchmark, and the governance layer all
+improve at once.
 
-## How the causal gate works (`src/causal_gate/causal_check.py`)
+## The promotion rule
 
-The gate is a **general** mechanism-attribution test. It contains **no reference
-to any specific planted hack** — the test suite asserts this. Given the
-*claimed* mechanism, it applies two general properties:
+A successor advances only when **every** gate passes:
 
-1. **Attribution (ablation).** Permute the claimed feature and recompute the
-   modification's gain. If the gain *survives* the ablation of the claimed
-   mechanism, the gain came from somewhere else, so the claim is false — reject,
-   regardless of the benchmark score. (Permutation-importance applied to a
-   *stated cause*: if it's load-bearing, knocking it out should bring the
-   structure down.)
-2. **Invariance.** Re-measure the gain across a family of environments in which
-   spurious correlations are re-randomized (different strength, often flipped
-   sign), while the causal law stays fixed. A genuine causal mechanism keeps
-   paying off; an exploit's gain collapses or reverses. This catches an exploit
-   *even when the modification honestly names it*, and it generalizes to
-   exploits the gate has never seen.
+| Gate | Passes when |
+|------|-------------|
+| benchmark | `capability_drift > fitness_delta_threshold` |
+| novelty | `novelty_score >= threshold` (anti-collapse) |
+| regression | `regression_failures == 0` on protected tasks |
+| containment | `side_effect_scope <= ceiling` (sandbox) |
+| **causal** | claimed mechanism survives ablation **and** is invariant across environments |
+| contracts | required proof-carrying obligations are discharged and re-checked |
+| **HALF-LIFE** | `capability_drift <= assurance_renewal × safety_factor`, and state not RED/BLACK |
 
-The world (`task.py`) is the ground truth and knows which feature is causal. The
-gate never does — it only asks the world for environments and probes whatever
-mechanism the modification claims.
+No single gate can promote a candidate; any gate can veto one. That defense in
+depth is the deliberate answer to the known blind spot of any single check.
+
+## HALF-LIFE: capability must not outrun assurance
+
+The governing inequality is `capability_drift <= assurance_renewal × safety_factor`.
+The control plane tracks the gap between the promoted frontier and the level
+assurance has caught up to, and exposes operational states:
+
+`GREEN` (promote) → `AMBER` (promote, watched) → `RED` (constrain) → `BLACK`
+(freeze / degrade / shutdown).
+
+A single over-large jump is refused outright, even from GREEN, because no amount of
+accumulated assurance justifies a step the layer cannot test in one renewal period.
 
 ## Run it
 
 ```bash
 pip install -e .
-pip install pytest        # or: pip install -e ".[test]"
+pip install pytest          # or: pip install -e ".[test]"
 pytest -v
+python examples/run_minimal_cycle.py
 ```
 
-You can also watch the two gates disagree on the planted hack:
+The example prints, per cycle, the frontier, HALF-LIFE state, the promoted
+successor, filled MAP-Elites niches, POET spawns, and the SEAL shortcut-aversion
+the foundry has *learned* from rejecting reward hacks — and writes a reproducible
+RunPack.
 
-```bash
-python -m causal_gate.loop
-```
+## The research → mechanism map
 
-## What each test proves
-
-| Test | Scenario | Benchmark gate | Causal gate | What it proves |
-|------|----------|----------------|-------------|----------------|
-| `test_legit_improvement.py` | gain truly from the claimed mechanism | accept | **accept** | the gate does not reject *real* improvements; the claim is load-bearing and invariant |
-| `test_reward_hack.py` | gain from a shortcut; claim names the *real* mechanism | **accept** | **reject** | the core result — benchmark is fooled; the causal gate sees the gain survive ablation of the claimed mechanism |
-| `test_fabricated_claim.py` | gain from a shortcut; claim *lies* about the mechanism (names a feature the model never reads) | accept | **reject** | a fabricated claim is still caught: ablating an unused mechanism removes none of the gain |
-| `test_gate_not_overfit.py` | a **second, unseen** shortcut, claimed *honestly* | accept | **reject** | the gate is not a lookup table — an honest claim passes the ablation check, but the **general invariance property** still catches the new exploit; the check source names no specific feature |
-| `test_threshold_sensitivity.py` | sweep `threshold`/`margin`/`n_envs` and a **stealth** exploit | — | — | the verdicts are robust to the constants for the *loud* canonical adversaries, **but** a shortcut-contaminated stealth exploit is **falsely accepted at the default margin** — robustness is a property of the operating point, not a free lunch |
-
-`test_gate_not_overfit.py` is the important one for the "is this overfit?" worry:
-it introduces a shortcut the gate has never been told about, has the adversary
-*honestly* claim it (so the ablation check alone would accept it), and shows the
-gate still rejects it via the general invariance property — then asserts by
-source inspection that `causal_check.py` references no specific feature name.
-
-`test_threshold_sensitivity.py` is the adversarial counterweight. The other tests
-each pin one operating point; "all tests pass" therefore certifies *the verdicts
-at the default constants*, not that they are robust to them. The sweep maps the
-safe region of `(threshold, margin)`, shows the defaults are interior for the
-loud canonical adversaries — and then exhibits a **stealth exploit the shipped
-default margin (0.02) wrongly accepts**, recovered only by raising the margin or
-sampling more environments. Don't let the green checks launder "robust" into
-"correct at one point." See [`FALSIFICATION.md`](./FALSIFICATION.md) for the
-write-up.
+| Layer | Research basis | Role here (`rsi_foundry/...`) |
+|-------|----------------|-------------------------------|
+| DGM loop | Darwin Gödel Machine / self-editing coding agents | `loops/dgm_loop.py` — self-edit as a patch, not a live mutation |
+| AlphaEvolve loop | Evolutionary coding agent + evaluators | `loops/alphaevolve_loop.py` — recombine elites, select by fitness |
+| ADAS loop | Automated Design of Agentic Systems | `loops/adas_loop.py` — search agent topology |
+| SEAL loop | Self-Adapting LMs | `training/seal_loop.py` — failures become training signal |
+| AI Scientist loop | Automated scientific workflow | `loops/scientist_loop.py` — hypothesis → proof-carrying patch |
+| Benchmark layer | MLE/RE/SWE/ABC-Bench | `connectors/benchmark_adapters.py` — scored suite + evaluator quorum |
+| Formal / contracts | LeanDojo / proof-carrying gates | `verification/contracts.py` — re-checked obligations |
+| Quality-diversity | MAP-Elites | `loops/novelty_ledger.py` — best-per-niche archive |
+| Environment coevolution | POET | `evals/poet.py` — benchmark hardens with the frontier |
+| Trait inheritance | Recursive Capability Fusion | `loops/best_attribute_registry.py` |
+| HALF-LIFE | assurance control plane | `governance/half_life.py` |
+| RunPacks | reproducible experiment records | `core/runpack_exporter.py` |
 
 ## Layout
 
 ```
-causal-gate/
-  README.md
-  FALSIFICATION.md
-  pyproject.toml
-  src/causal_gate/
-    __init__.py
-    task.py          # simulated benchmark: true causal signal + exploitable shortcuts
-    modification.py  # Modification = code change + CausalClaim (mechanism it claims)
-    gates.py         # BenchmarkGate (score up) and CausalGate (claimed mechanism carries the gain)
-    causal_check.py  # the adversarial check: ablate/permute the claimed mechanism + invariance
-    loop.py          # self-improvement loop routing modifications through a chosen gate
-  tests/
-    test_legit_improvement.py
-    test_reward_hack.py
-    test_fabricated_claim.py
-    test_gate_not_overfit.py
+recursive_rnd_foundry/
+  README.md  FALSIFICATION.md  pyproject.toml
+  configs/policy.yaml          # every threshold a gate consults
+  docs/ARCHITECTURE.md
+  examples/run_minimal_cycle.py
+  runpacks/minimal_cycle.runpack.yaml
+  rsi_foundry/
+    core/        # types, policy, mini-yaml, context, registry, runpack, orchestrator
+    loops/       # dgm, alphaevolve, adas, scientist, novelty+QD, best-attribute
+    training/    # seal (failure-mined self-training)
+    governance/  # causal_gate, half_life, promotion
+    verification/# proof-carrying contracts
+    sandbox/     # containment
+    connectors/  # benchmark adapters + evaluator quorum
+    evals/       # harness, poet
+  tests/         # spine, half-life, causal, novelty/QD, contracts, seal, poet, runpack
 ```
+
+This repository is the runnable spine. Turning the simulated seams (benchmark,
+sandbox, proof) into real ones — Git patches, Docker, SWE/MLE-Bench, Lean — is the
+v0.3 work, and `docs/ARCHITECTURE.md` lists the seams in dependency order.

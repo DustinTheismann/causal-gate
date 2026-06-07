@@ -2,101 +2,76 @@
 
 ## What this artifact is
 
-**Class:** CLASS-5 — *informed inference*. This repository is a **simulation**,
-not an empirical result. There is no real model, no real benchmark, and no real
-self-improvement. The "model" is a linear-threshold function over named
-features; the "benchmark" is accuracy on a synthetic dataset; the "mechanisms"
-are individual features whose causal status is stipulated by the world
-generator.
+**Class:** CLASS-5 — *informed inference*. The Recursive R&D Foundry is a
+**simulation**, not an empirical system. There is no real model, no real code
+patch, no real sandbox, no real proof, and no real benchmark. An "agent" is a
+genome of capability genes; a "benchmark" is a weighted scoring function; a
+"sandbox run" is a divergence measurement; a "proof" is a re-checked predicate. The
+research it cites (DGM, AlphaEvolve, ADAS, SEAL, AI Scientist, MAP-Elites, POET,
+LeanDojo, MLE/RE/SWE/ABC-Bench) is **motivation for the architecture**, not work
+reproduced here.
 
 ## What it does demonstrate
 
-Within the simulation, it demonstrates that the **causal-acceptance-gate logic
-is coherent and not overfit to a single planted hack**:
+Within the simulation, the governance logic is **coherent, composable, and not
+overfit**:
 
-1. A legitimate improvement, whose gain genuinely comes from the claimed
-   mechanism, is accepted by both gates.
-2. A planted reward hack — gain from a shortcut, with a causal claim that names
-   the *real* mechanism — is accepted by the benchmark gate and **rejected** by
-   the causal gate, because the gain survives ablation of the claimed mechanism.
-3. A fabricated claim (naming a mechanism the model never uses) is also rejected.
-4. A **second, different shortcut the gate has never seen** — claimed *honestly*,
-   so that the ablation check alone would accept it — is still rejected by the
-   gate's general invariance property. The check module names no specific
-   feature of the world (asserted by source inspection). The defense is a general
-   property, not a lookup table keyed to the planted hack.
+1. A governed recursive loop runs end to end and improves the frontier *only*
+   through successors that pass every gate — then plateaus when governed
+   improvements run out. It is not unbounded self-improvement.
+2. A planted reward hack (gain from the spurious gene, honest-sounding causal
+   claim) is rejected by the causal gate; the causal check names no specific gene
+   (asserted by source inspection) and catches an honestly-claimed shortcut via the
+   general invariance property.
+3. HALF-LIFE refuses any single capability jump larger than one renewal period can
+   absorb, and escalates GREEN→AMBER→RED→BLACK as the assurance gap grows,
+   constraining promotion in RED/BLACK.
+4. Proof-carrying contracts are *re-checked*: a high-risk candidate without a
+   discharged safety obligation is rejected, and a candidate that *claims* a
+   contract it does not satisfy fails verification.
+5. The "don't discard losers" engine works: traits are harvested from rejected
+   candidates, niches fill a MAP-Elites archive, and failures raise a
+   shortcut-aversion the proposers obey — so reward-hacking stops emerging without
+   any rule hand-coded against the specific hack.
+6. POET keeps the benchmark non-stationary; RunPacks reproduce a cycle exactly.
 
-That is the whole and only claim: **the gate logic is internally coherent and
-general across at least one shortcut it was never shown.**
+That is the entire claim: **the governance is internally coherent and general
+across the mechanisms it was built to handle, and the layers compose into one
+defensible promotion rule.**
 
-## What it does NOT demonstrate (the open question)
+## What it does NOT demonstrate (the open questions)
 
-It does **not** demonstrate that **causal-claim defense is cheaper than formal
-proof on real models.** That is the entire bet of the "middle path" — that
-adversarially checking a stated causal mechanism is materially less expensive
-than exhaustive/formal verification, while being materially more robust than a
-benchmark score. Nothing here speaks to that. The cost structure of real
-mechanism attribution (interventions on real models, real distribution shift,
-real adversaries who design claims to survive the check) is exactly what is
-abstracted away.
+- That any of these gates is **sound or cheap on real models**. Real ablation,
+  real distribution shift, real adversaries, real proof obligations, and real
+  containment are exactly what is abstracted away.
+- That the **HALF-LIFE inequality is measurable in practice** — `assurance_renewal`
+  is a chosen constant here; on real systems "how much capability can assurance
+  absorb per period" has no obvious estimator.
+- That defense-in-depth **closes** the causal gate's inherited blind spot rather
+  than merely overlapping with it. The stealth-exploit weakness documented in the
+  original causal-gate lineage still exists; here it is *contained* by other gates
+  in this toy, not *solved*.
 
-## The specific result that would falsify the idea
+## The specific results that would falsify the idea
 
-The approach dies if **the ablation/invariance-based check cannot be made to
-generalize beyond planted shortcuts without becoming as expensive as exhaustive
-verification.**
+1. **No cheap mechanism attribution.** If, on real models, deciding whether a
+   claimed mechanism is load-bearing-and-invariant costs as much as exhaustive
+   verification, the causal gate is not a middle path — it is verification with
+   extra steps.
+2. **No principled assurance-renewal rate.** If `assurance_renewal` cannot be
+   estimated from a stated assurance process, HALF-LIFE degenerates into a knob
+   tuned to whatever growth rate the operator wanted, and "capability must not
+   outrun assurance" becomes unfalsifiable.
+3. **Gate overlap is not gate coverage.** If, across realistic adversaries, the
+   seven gates fail *together* (an exploit that is simultaneously benchmark-up,
+   contained, invariant-on-sampled-environments, contract-claiming, and
+   slow-drifting), then "defense in depth" was an illusion of independence, and the
+   composite rule is no stronger than its weakest member.
+4. **Coevolution outruns assurance.** If POET-style environment generation expands
+   the capability surface faster than assurance can renew over it, the very
+   mechanism meant to prevent overfitting becomes an uncontrolled capability driver.
 
-Concretely, the idea is falsified if any of the following hold on real systems:
-
-- **No cheap environment family.** The invariance check depends on a supply of
-  environments in which spurious correlations are re-randomized while the causal
-  law holds. If constructing such interventions for a real model is itself as
-  costly as formal verification (or impossible without already knowing the true
-  mechanism), the middle path collapses into the expensive path it was meant to
-  avoid.
-- **Adversarial claims that survive a bounded check.** If, for any fixed-budget
-  attribution/invariance procedure, an adversary can reliably craft a
-  modification whose gain rides on a hidden mechanism yet survives the check
-  (e.g., a shortcut engineered to be invariant across the *particular*
-  environments the gate can afford to sample), then passing the gate stops being
-  evidence of a true mechanism.
-- **Generalization requires exhaustion.** If catching the *n+1*-th novel shortcut
-  reliably requires enumerating shortcuts (or environments, or interventions) in
-  a way that scales with the size of the hypothesis space — i.e., the only way to
-  make the check general is to make it exhaustive — then there is no middle path:
-  it is just verification with extra steps.
-
-In this toy, none of these bite *for the four canonical scenarios*, because the
-world hands the gate a perfect environment family and those adversaries are loud.
-On real models, any one of them landing kills the approach. This repository is
-evidence that the *logic* is worth taking to that harder test — and nothing more.
-
-## Empirical note: the constants do the discriminating, and they are not derived
-
-`tests/test_threshold_sensitivity.py` sweeps the gate's two free constants
-(`attribution_threshold = 0.5`, `invariance_margin = 0.02`) and the environment
-sample size. Two findings are worth stating plainly, because the four canonical
-tests hide them:
-
-1. **The defaults look robust only because the canonical adversaries are loud.**
-   Across five seeds there is a wide band of `(threshold, margin)` that classifies
-   all four canonical scenarios correctly, and the defaults sit well inside it
-   with slack far larger than the accuracy quantum. Taken alone, this invites the
-   conclusion that the constants don't matter much. They do.
-
-2. **A stealth adversary turns the margin into the whole decision — and the
-   shipped default gets it wrong.** A shortcut-contaminated modification whose
-   gain stays *net-positive across the sampled environments* (worst sampled-env
-   gain ≈ +0.055) is **accepted at the default margin of 0.02**. It is rejected
-   only by (a) raising the margin above its worst sampled-env gain or (b)
-   sampling enough additional environments to reach the adverse tail. Correctness
-   on this adversary is therefore set jointly by `invariance_margin` and
-   `n_envs` — neither of which has a principled value here. This is killers #1 and
-   #2 above, reproduced as an executing test rather than asserted in prose.
-
-The honest reading: **"all tests pass" certifies the verdicts at one operating
-point; it does not certify robustness, and a stealth exploit exists inside the
-toy that the shipped defaults wave through.** Deriving `invariance_margin` from a
-stated per-environment noise model (so it is a function of the world rather than
-a number chosen by looking at the answer) is the obvious next step — and whether
-that derivation stays cheap on real models is, again, the open question.
+In this toy none of these bite, because the world is generous and the adversaries
+are the ones the architecture was designed to catch. On real systems any one of
+them landing kills the approach. This repository is evidence that the *governance
+logic* is worth taking to that harder test — and nothing more.

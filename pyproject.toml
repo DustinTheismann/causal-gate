@@ -3,20 +3,22 @@ requires = ["setuptools>=61.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "causal-gate"
-version = "0.1.0"
-description = "A toy demonstrating mechanism-attribution rejection of reward hacks in a self-improvement loop."
+name = "recursive-rnd-foundry"
+version = "0.2.0"
+description = "A governed recursive self-improvement scaffold: generate successors, evaluate, learn from failures, and promote only candidates that pass novelty, causal, benchmark, containment, and HALF-LIFE assurance gates."
 readme = "README.md"
 license = { file = "LICENSE" }
 requires-python = ">=3.9"
-# Standard library only. The "model" and "benchmark" are simulated on purpose.
+# Standard library only. Every "model", "benchmark", "sandbox" and "proof" is
+# simulated -- the governance LOGIC is the object of study, not real ML.
 dependencies = []
 
 [project.optional-dependencies]
 test = ["pytest>=7.0"]
 
 [tool.setuptools.packages.find]
-where = ["src"]
+where = ["."]
+include = ["rsi_foundry*"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

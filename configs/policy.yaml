@@ -1,0 +1,29 @@
+# Governance policy for the Recursive R&D Foundry.
+# Every threshold a gate consults lives here, so the operating point is data,
+# not a magic number buried in code. (Lesson carried over from the causal-gate
+# lineage: a hand-set constant is only honest if it is visible and swept.)
+
+promotion:
+  fitness_delta_threshold: 0.01   # benchmark capability must rise by at least this
+  novelty_threshold: 0.05         # behavioral distance from the archive
+  max_regression_failures: 0      # protected tasks that may regress
+  max_side_effect_scope: 0.34     # containment ceiling
+
+causal_gate:
+  attribution_threshold: 0.5      # fraction of gain that ablating the claim must destroy
+  invariance_margin: 0.0          # gain must stay >= this across environments
+  n_environments: 7
+
+half_life:
+  assurance_renewal: 0.15         # capability the assurance layer can absorb per cycle
+  safety_factor: 1.0              # multiplier on the absorbable drift
+  amber_ratio: 0.6                # drift/assurance fraction -> AMBER
+  red_ratio: 1.0                  # -> RED (constrain)
+  black_ratio: 1.6                # -> BLACK (freeze/shutdown)
+
+contracts:
+  risk_requires_contract: 0.5     # candidates at/above this risk must ship contracts
+
+poet:
+  spawn_score: 0.7                # frontier mastery above which a harder env spawns
+  max_environments: 24
