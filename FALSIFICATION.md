@@ -1,15 +1,38 @@
 # FALSIFICATION
 
-## What this artifact is
+The repository now spans two classes of artifact. Be precise about which is which.
 
-**Class:** CLASS-5 — *informed inference*. The Recursive R&D Foundry is a
-**simulation**, not an empirical system. There is no real model, no real code
-patch, no real sandbox, no real proof, and no real benchmark. An "agent" is a
-genome of capability genes; a "benchmark" is a weighted scoring function; a
-"sandbox run" is a divergence measurement; a "proof" is a re-checked predicate. The
-research it cites (DGM, AlphaEvolve, ADAS, SEAL, AI Scientist, MAP-Elites, POET,
-LeanDojo, MLE/RE/SWE/ABC-Bench) is **motivation for the architecture**, not work
-reproduced here.
+## The real layer (`rsi_foundry/code/`) — CLASS-2, demonstrated
+
+**Class:** CLASS-2 — *demonstrated on a real, if small, substrate*. This layer is
+**not** a simulation. It generates real Python (search over sketch hole-fillings),
+**executes** it in an isolated subprocess against real unit tests, and improves a
+failing program to one that passes 100% of held-out tests by a sequence of edits
+each justified by a **real** causal-by-revert check (revert the claimed edit, re-run
+the real tests). The learning (UCB bandit, lazy-causal policy) and the meta-loop
+(measure candidate policies, adopt the cheaper one only if it loses no capability)
+operate on real execution counts. The tests in `tests/test_code_*.py` run actual
+code.
+
+What it does **not** establish: that this scales. The synthesis space is a small,
+hand-authored set of holes — not an LLM, not arbitrary programs, not real
+repositories. It demonstrates the *governance mechanics work on real execution*; it
+says nothing about cost or soundness when the proposer is a large model and the
+benchmark is SWE-bench. Specific falsifier: if, with a real generative proposer, the
+causal-by-revert check cannot be evaluated without re-running a full real test suite
+per candidate edit (and that cost dominates), the gate is not a cheap filter — it is
+the expensive verification it was meant to front.
+
+## The governance layer (`rsi_foundry/` core/loops/governance/...) — CLASS-5
+
+**Class:** CLASS-5 — *informed inference*. This layer is still a **simulation**.
+Here an "agent" is a genome of capability genes; the "benchmark" is a weighted
+scoring function; the "sandbox run" is a divergence measurement; a "proof" is a
+re-checked predicate. The research it cites (DGM, AlphaEvolve, ADAS, SEAL, AI
+Scientist, MAP-Elites, POET, LeanDojo, MLE/RE/SWE/ABC-Bench) is **motivation for the
+architecture**, not work reproduced here. The HALF-LIFE assurance plane, contracts,
+quality-diversity archive, and POET coevolution are demonstrated only against this
+simulated world.
 
 ## What it does demonstrate
 

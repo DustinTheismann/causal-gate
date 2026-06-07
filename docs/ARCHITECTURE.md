@@ -1,5 +1,26 @@
 # Architecture
 
+## Two layers
+
+The repository has a **real** code-improvement substrate (`rsi_foundry/code/`) and a
+**simulated** governance reference model (the rest of `rsi_foundry/`). They share the
+same idea — improve only what survives a causal/regression/containment gate — but the
+real layer runs actual generated Python against actual tests, while the governance
+layer studies the assurance machinery (HALF-LIFE, contracts, QD, POET) on a simulated
+capability world. The sections below cover the governance cycle; the real layer is
+documented inline in `rsi_foundry/code/` and exercised by `tests/test_code_*.py`.
+
+### The real layer in one paragraph
+
+`code/tasks.py` defines sketch tasks (valid Python with holes). `code/synthesis.py`
+renders real candidate source by filling a hole. `code/execution.py` runs that source
+in an isolated subprocess (rlimit + timeout + static safety scan) against real unit
+tests. `code/evaluation.py` computes the causal-by-revert evidence: revert the claimed
+hole, re-run the real tests, and require the gain to vanish *and* to hold on a
+held-out split. `code/code_foundry.py` is the best-improvement loop under those gates;
+`training/operator_bandit.py` learns per-hole productivity; `code/meta.py` measures
+candidate improver policies and adopts the cheaper one only if it loses no capability.
+
 ## One cycle, end to end
 
 `Foundry.run_cycle()` (`rsi_foundry/core/orchestrator.py`) executes:

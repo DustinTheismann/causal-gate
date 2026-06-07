@@ -5,16 +5,55 @@ candidates, evaluate them, learn from failures, and promote only candidates that
 clear a stack of gates: **novelty, causal, benchmark, containment, contracts, and
 HALF-LIFE assurance**. Standard library + `pytest` only.
 
-> **Honest limitation, up front.** Every "model", "benchmark", "sandbox", and
-> "proof" here is **simulated**. The cited research directions (Darwin Gödel
-> Machine, AlphaEvolve, ADAS, SEAL, AI Scientist, MAP-Elites, POET, LeanDojo,
-> MLE/RE/SWE-bench) are the *motivation* for the architecture, **not** integrated
-> systems and **not** reproduced results. What this repo demonstrates is that the
-> **governance logic is coherent, composable, and not overfit** — successors only
-> advance when a causally-evidenced, contained, assurance-bounded improvement
-> survives every gate. It does **not** show that this governance is cheap or sound
-> on real models. That is the open question. See
+There are now **two layers**:
+
+1. A **real** code-improvement substrate (`rsi_foundry/code/`) — actual program
+   synthesis executed against actual unit tests in a sandboxed subprocess, with
+   real learning from execution feedback and a meta-loop that improves its own
+   improver. This is not simulated: it generates real Python, runs it, and the
+   causal-by-revert gate reverts a real edit and re-runs real tests.
+2. A **governance reference model** (`rsi_foundry/` core/loops/governance/...) —
+   the seven-gate promotion rule over a *simulated* capability world, used to
+   study the assurance logic (HALF-LIFE, contracts, MAP-Elites, POET) at a scale
+   the real substrate has not yet reached.
+
+> **Honest limitation, up front.** The real substrate is *real but small*: code
+> generation is **sketch-based program synthesis** (search over a bounded space of
+> hole-fillings), **not** an LLM, so it reaches small repair-style programs, not
+> arbitrary code; "training" is a real bandit + policy-selection, **not** neural
+> training; there is no Git/Docker/Lean integration. The governance layer is still
+> **simulated** — the cited research (Darwin Gödel Machine, AlphaEvolve, ADAS,
+> SEAL, AI Scientist, MAP-Elites, POET, LeanDojo, MLE/RE/SWE-bench) is the
+> *motivation*, not reproduced results. What is demonstrated: the loop genuinely
+> generates, executes, and improves real code under a causal/regression/containment
+> gate, and the governance logic is coherent and composable. What is **not**:
+> that any of this is cheap or sound at real-model scale. See
 > [`FALSIFICATION.md`](./FALSIFICATION.md).
+
+## The real layer: generate, execute, improve (`rsi_foundry/code/`)
+
+```bash
+python examples/run_code_improvement.py
+```
+
+Given a deliberately-wrong seed program, the loop proposes single-hole edits,
+**executes each in a sandboxed subprocess** against real unit tests, and promotes
+the best edit that passes every gate — containment (real isolation + safety scan +
+timeout), benchmark (visible pass-rate up), regression (no previously-passing test
+breaks), and **causal** (reverting the *claimed* edit destroys the gain, and the
+gain holds on a held-out test split). Because the causal gate demands single-hole
+attribution, the program is improved by a sequence of individually-justified edits
+until it passes 100% of the real tests.
+
+| What | Status now | Where |
+|------|-----------|-------|
+| Code generation | **real** (sketch/hole program synthesis, emits real Python) | `code/synthesis.py`, `code/tasks.py` |
+| Benchmark | **real** (unit tests executed on generated code) | `code/execution.py` |
+| Sandbox / containment | **real** (isolated subprocess, rlimit, timeout, static scan) | `code/execution.py` |
+| Causal gate | **real** (revert the claimed edit + re-run; held-out generalization) | `code/evaluation.py` |
+| Learning / "training" | **real** (UCB bandit + lazy-causal policy from execution feedback) | `training/operator_bandit.py`, `code/code_foundry.py` |
+| Meta self-improvement | **real** (measure candidate policies, adopt the cheaper one if gated) | `code/meta.py` |
+| HALF-LIFE / contracts / QD / POET | **simulated** (governance reference model) | `governance/`, `loops/`, `evals/` |
 
 ## The core conclusion
 
@@ -103,15 +142,18 @@ recursive_rnd_foundry/
   examples/run_minimal_cycle.py
   runpacks/minimal_cycle.runpack.yaml
   rsi_foundry/
+    code/        # REAL layer: tasks, execution (sandbox), synthesis, evaluation,
+                 #            code_foundry (the loop), meta (self-improvement)
     core/        # types, policy, mini-yaml, context, registry, runpack, orchestrator
     loops/       # dgm, alphaevolve, adas, scientist, novelty+QD, best-attribute
-    training/    # seal (failure-mined self-training)
+    training/    # seal (failure-mined self-training), operator_bandit (real learning)
     governance/  # causal_gate, half_life, promotion
     verification/# proof-carrying contracts
     sandbox/     # containment
     connectors/  # benchmark adapters + evaluator quorum
     evals/       # harness, poet
-  tests/         # spine, half-life, causal, novelty/QD, contracts, seal, poet, runpack
+  examples/      # run_minimal_cycle.py (governance), run_code_improvement.py (real)
+  tests/         # governance suite + test_code_* (execute real generated code)
 ```
 
 This repository is the runnable spine. Turning the simulated seams (benchmark,
